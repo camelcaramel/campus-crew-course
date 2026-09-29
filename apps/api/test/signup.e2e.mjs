@@ -223,7 +223,8 @@ test('invalid, missing and nonstring input returns 400 without insertion', async
     const { response, body } = await signup('invalid-' + i, invalid[i]);
     assert.equal(response.status, 400, JSON.stringify(invalid[i]));
     assert.equal(body.statusCode, 400);
-    assert.ok(Array.isArray(body.message));
+    assert.equal(body.code, 'VALIDATION_ERROR');
+    assert.equal(typeof body.message, 'string');
   }
   for (const body of [{}, null, []]) {
     const response = await request('POST', '/api/auth/signup', body);

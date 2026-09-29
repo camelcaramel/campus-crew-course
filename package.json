@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=22.17.1",
+    "node": ">=22.17.1 <23",
     "npm": ">=10"
   },
   "packageManager": "npm@10.9.2",
@@ -18,9 +18,15 @@
     "lint": "npm run lint --workspaces",
     "start:web": "npm run start --workspace=@campus-crew/web",
     "start:api": "npm run start --workspace=@campus-crew/api",
+    "db:migrate:deploy": "npm run db:migrate:deploy --workspace=@campus-crew/api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run build"
+    "check": "npm run format:check && npm run lint && npm run build",
+    "test": "npm run test --workspaces",
+    "test:prepare": "npm run test:prepare --workspace=@campus-crew/api",
+    "test:e2e:prepare": "npm run test:e2e:prepare --workspace=@campus-crew/api",
+    "test:e2e": "npm run test:e2e --workspace=@campus-crew/web",
+    "test:e2e:report": "npm run test:e2e:report --workspace=@campus-crew/web"
   },
   "overrides": {
     "@nestjs/platform-express": {

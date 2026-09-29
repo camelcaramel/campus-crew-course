@@ -1,0 +1,406 @@
+{
+  "info": {
+    "name": "Campus Crew Session 26 - Search Filter Pagination",
+    "description": "GET-only collection. Prepare five title matches (STUDY x3, PROJECT x1, CONTEST x1) with searchPrefix + React, plus one content-only match. searchPrefix must uniquely identify your fixtures.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "searchPrefix",
+      "value": "S26-demo-"
+    }
+  ],
+  "item": [
+    {
+      "name": "Defaults",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('defaults',()=>{const b=pm.response.json();pm.expect(b.meta.page).to.eql(1);pm.expect(b.meta.limit).to.eql(10);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "First page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=1&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('two items, newest first',()=>{const b=pm.response.json();pm.expect(b.items).to.have.length(2);pm.expect(Date.parse(b.items[0].createdAt)).to.be.at.least(Date.parse(b.items[1].createdAt));pm.collectionVariables.set('firstIds',JSON.stringify(b.items.map(x=>x.id)));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Second page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=2&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('different items',()=>{const b=pm.response.json();pm.expect(b.meta.page).to.eql(2);pm.expect(b.items).to.have.length(2);const ids=JSON.parse(pm.collectionVariables.get('firstIds'));b.items.forEach(x=>pm.expect(ids).not.to.include(x.id));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Title case insensitive",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q={{searchPrefix}}react"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('five title matches, content-only excluded',()=>pm.expect(pm.response.json().meta.total).to.eql(5));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "STUDY only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?category=STUDY"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('exact category',()=>{const b=pm.response.json();pm.expect(b.meta.total).to.be.above(0);b.items.forEach(x=>pm.expect(x.category).to.eql('STUDY'));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PROJECT only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?category=PROJECT"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('exact category',()=>{const b=pm.response.json();pm.expect(b.meta.total).to.be.above(0);b.items.forEach(x=>pm.expect(x.category).to.eql('PROJECT'));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CONTEST only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?category=CONTEST"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('exact category',()=>{const b=pm.response.json();pm.expect(b.meta.total).to.be.above(0);b.items.forEach(x=>pm.expect(x.category).to.eql('CONTEST'));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Combined search and filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q={{searchPrefix}}react&category=STUDY&page=1&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('3 matches, 2 pages',()=>{const b=pm.response.json();pm.expect(b.items).to.have.length(2);pm.expect(b.meta).to.eql({page:1,limit:2,total:3,totalPages:2});});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Combined second page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q={{searchPrefix}}react&category=STUDY&page=2&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('last item',()=>{const b=pm.response.json();pm.expect(b.items).to.have.length(1);pm.expect(b.meta).to.eql({page:2,limit:2,total:3,totalPages:2});});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "No results",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q={{searchPrefix}}absent"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('empty',()=>pm.expect(pm.response.json()).to.eql({items:[],meta:{page:1,limit:10,total:0,totalPages:0}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Out of range page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q={{searchPrefix}}react&page=99&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});",
+              "pm.test('empty page retains count',()=>{const b=pm.response.json();pm.expect(b.items).to.eql([]);pm.expect(b.meta.total).to.eql(5);pm.expect(b.meta.totalPages).to.eql(3);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blank q",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q=&limit=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('items/meta and safe author',()=>{ const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.meta).to.have.all.keys('page','limit','total','totalPages');pm.expect(b.meta.totalPages).to.eql(Math.ceil(b.meta.total/b.meta.limit));b.items.forEach(x=>pm.expect(Object.keys(x.author).sort()).to.eql(['id','name']));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject page=0",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=0"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject page=1.5",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=1.5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject page=abc",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=abc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject limit=0",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?limit=0"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject limit=51",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?limit=51"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject category=INVALID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?category=INVALID"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject page=1&page=2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?page=1&page=2"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject q=a&q=b",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/recruitments?q=a&q=b"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    }
+  ]
+}

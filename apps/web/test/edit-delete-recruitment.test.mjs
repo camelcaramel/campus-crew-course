@@ -23,7 +23,10 @@ before(async () => {
     'data:text/javascript;base64,' +
     Buffer.from(
       ts.transpileModule(source, {
-        compilerOptions: { module: ts.ModuleKind.ESNext },
+        compilerOptions: {
+          module: ts.ModuleKind.ESNext,
+          target: ts.ScriptTarget.ES2017,
+        },
       }).outputText,
     ).toString('base64');
   const client = await readFile(
@@ -38,6 +41,13 @@ before(async () => {
     compile(source.replace('@/lib/api-client', compile(client)))
   );
   server = createServer(async (request, response) => {
+    if (
+      ['/api/recruitments/401', '/api/recruitments/403'].includes(request.url)
+    ) {
+      response.writeHead(Number(request.url.split('/').pop()));
+      response.end('{}');
+      return;
+    }
     if (request.url === '/api/recruitments/503') {
       request.socket.destroy();
       return;
@@ -119,3 +129,14 @@ test('PATCH rejects malformed success JSON', async () => {
     Error,
   );
 });
+
+for (const name of ['updateRecruitment', 'deleteRecruitment']) {
+  for (const [status, message] of [
+    [401, '로그인이 필요합니다. 다시 로그인해주세요.'],
+    [403, '작성자만 수정하거나 삭제할 수 있습니다.'],
+  ]) {
+    test(name + ' preserves authorization error ' + status, async () => {
+      await assert.rejects(api[name](status, { title: '수정' }), { message });
+    });
+  }
+}

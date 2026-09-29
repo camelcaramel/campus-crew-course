@@ -7,5 +7,11 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
   prettier,
-  globalIgnores(['.next/**', 'out/**', 'next-env.d.ts']),
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'next-env.d.ts',
+    'playwright-report/**',
+    'test-results/**',
+  ]),
 ]);

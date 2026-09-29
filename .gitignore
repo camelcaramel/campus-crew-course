@@ -4,6 +4,8 @@ node_modules/
 out/
 dist/
 coverage/
+playwright-report/
+test-results/
 *.tsbuildinfo
 next-env.d.ts
 apps/api/generated/
@@ -18,3 +20,4 @@ apps/api/generated/
 Thumbs.db
 .idea/
 .vscode/
+!.env.test.example

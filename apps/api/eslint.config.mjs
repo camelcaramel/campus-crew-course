@@ -8,4 +8,19 @@ export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
   prettier,
+  {
+    files: ['test/**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
+        Buffer: 'readonly',
+      },
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
 ]);

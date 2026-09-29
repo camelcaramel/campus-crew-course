@@ -12,6 +12,7 @@ import ts from 'typescript';
 const require = createRequire(import.meta.url);
 const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
 let queryState;
+let authState = { data: { user: { id: 1 } }, isPending: false, isError: false };
 const root = fileURLToPath(new URL('../src/', import.meta.url));
 const cache = new Map();
 function load(file) {
@@ -31,6 +32,8 @@ function load(file) {
         useParams: () => ({ id: '42' }),
         useRouter: () => ({ push() {} }),
       };
+    if (name === '@/features/auth/queries')
+      return { useMeQuery: () => authState };
     if (name === '@/features/recruitments/queries')
       return { useRecruitmentQuery: () => queryState };
     if (name.startsWith('@/') || name.startsWith('.')) {
@@ -143,3 +146,55 @@ test('a deleted record shows the missing-record error even when stale data exist
   assert.match(html, /모집글을 찾을 수 없습니다/);
   client.clear();
 });
+
+const DetailPage = load(
+  path.join(root, 'app/recruitments/[id]/page.tsx'),
+).default;
+const CreateForm = load(
+  path.join(root, 'features/recruitments/create-recruitment-form.tsx'),
+).CreateRecruitmentForm;
+for (const [name, auth, owner] of [
+  ['owner', { data: { user: { id: 1 } } }, true],
+  ['other', { data: { user: { id: 2 } } }, false],
+  ['logged-out', { data: null }, false],
+  ['loading', { isPending: true }, false],
+  [
+    'auth-error-with-stale-owner',
+    { data: { user: { id: 1 } }, isError: true },
+    false,
+  ],
+]) {
+  test('detail and edit controls: ' + name, () => {
+    authState = auth;
+    queryState = {
+      data: {
+        id: 42,
+        title: '제목',
+        content: '내용',
+        category: 'STUDY',
+        status: 'OPEN',
+        author: { id: 1, name: '작성자' },
+        createdAt: '2026-09-19',
+      },
+    };
+    const client = new QueryClient();
+    const render = (Component) =>
+      renderToStaticMarkup(
+        React.createElement(
+          QueryClientProvider,
+          { client },
+          React.createElement(Component),
+        ),
+      );
+    const detail = render(DetailPage);
+    assert.equal(detail.includes('>수정</button>'), owner);
+    assert.equal(detail.includes('>삭제</button>'), owner);
+    assert.equal(/<form/.test(render(Page)), owner);
+    if (name === 'logged-out') {
+      assert.ok(render(CreateForm).includes('href="/login"'));
+      assert.doesNotMatch(render(CreateForm), /<form/);
+    }
+    if (name === 'owner') assert.match(render(CreateForm), /<form/);
+    client.clear();
+  });
+}

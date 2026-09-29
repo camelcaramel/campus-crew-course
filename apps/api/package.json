@@ -8,16 +8,22 @@
     "prebuild": "prisma generate",
     "build": "nest build",
     "start": "node dist/src/main.js",
-    "test:e2e": "node --test --test-concurrency=1 test/*.e2e.mjs",
+    "test:e2e": "node test/run-tests.cjs --all",
     "lint": "eslint . --max-warnings 0",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:typecheck": "tsc --project tsconfig.prisma.json"
+    "db:typecheck": "tsc --project tsconfig.prisma.json",
+    "test": "node test/run-tests.cjs",
+    "test:legacy": "node test/run-tests.cjs --legacy",
+    "test:prepare": "node test/run-tests.cjs --prepare",
+    "test:e2e:prepare": "node test/run-tests.cjs --prepare --e2e"
   },
   "dependencies": {
     "@nestjs/common": "11.2.3",
     "@nestjs/core": "11.2.3",
+    "@nestjs/jwt": "11.0.2",
     "@nestjs/platform-express": "11.2.3",
     "@nestjs/swagger": "11.4.7",
     "@prisma/adapter-pg": "7.10.0",
@@ -25,6 +31,7 @@
     "bcryptjs": "3.0.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
+    "cookie-parser": "1.4.7",
     "dotenv": "18.0.1",
     "pg": "8.23.0",
     "reflect-metadata": "0.2.2",
@@ -32,8 +39,12 @@
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.24",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
     "@types/pg": "8.23.1",
+    "jest": "30.2.0",
     "prisma": "7.10.0",
+    "supertest": "7.1.4",
     "ts-node": "10.9.2"
   }
 }

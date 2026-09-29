@@ -1,22 +1,27 @@
-import { Allow } from 'class-validator';
+import { IsIn, IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-// 전역 whitelist에서 기존 필드를 보존합니다. 값 검증은 기존 Service 동작을 유지합니다.
+// DTO는 TypeScript 타입과 달리 런타임 HTTP 입력도 검사합니다.
 export class CreateRecruitmentDto {
-  @Allow()
-  @ApiProperty({ example: 'React 스터디 팀원 모집' })
+  @IsString()
+  @Length(2, 80)
+  @ApiProperty({
+    example: 'React 스터디 팀원 모집',
+    minLength: 2,
+    maxLength: 80,
+  })
   title!: string;
 
-  @Allow()
-  @ApiProperty({ example: '주 1회 함께 공부할 팀원을 모집합니다.' })
+  @IsString()
+  @Length(10, 2000)
+  @ApiProperty({
+    example: '주 1회 함께 공부할 팀원을 모집합니다.',
+    minLength: 10,
+    maxLength: 2000,
+  })
   content!: string;
 
-  @Allow()
+  @IsIn(['STUDY', 'PROJECT', 'CONTEST'])
   @ApiProperty({ enum: ['STUDY', 'PROJECT', 'CONTEST'], example: 'STUDY' })
   category!: 'STUDY' | 'PROJECT' | 'CONTEST';
-
-  // auth 차시에서는 body 대신 현재 로그인 사용자 id를 사용합니다.
-  @Allow()
-  @ApiProperty({ example: 1 })
-  authorId!: number;
 }

@@ -3,6 +3,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useMeQuery } from '@/features/auth/queries';
+import { ApplicationSection } from '@/features/applications/application-section';
+import { ApplicationManager } from '@/features/applications/application-manager';
 import { useState } from 'react';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Spinner } from '@/components/ui/spinner';
@@ -13,6 +16,7 @@ import { recruitmentCategoryLabels } from '@/features/recruitments/types';
 export default function RecruitmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const me = useMeQuery();
   const queryClient = useQueryClient();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const mutation = useMutation({
@@ -33,7 +37,7 @@ export default function RecruitmentDetailPage() {
   });
 
   function handleDelete() {
-    if (mutation.isPending || !isConfirmingDelete) return;
+    if (!isOwner || mutation.isPending || !isConfirmingDelete) return;
     mutation.mutate();
   }
   const {
@@ -82,6 +86,8 @@ export default function RecruitmentDetailPage() {
   }
 
   const isOpen = recruitment.status === 'OPEN';
+  const isOwner =
+    !me.isPending && !me.isError && me.data?.user.id === recruitment.author.id;
 
   return (
     // 기존 layout의 위쪽 여백 32px + 이 페이지의 16px = 48px
@@ -125,26 +131,28 @@ export default function RecruitmentDetailPage() {
             {recruitment.content}
           </p>
         </div>
-        {/* 교육용 버튼입니다. confirm은 UX이며 서버 권한 검사는 23차시에 추가합니다. */}
-        <div className="mt-8 flex gap-3">
-          <button
-            type="button"
-            disabled={mutation.isPending}
-            onClick={() => router.push(`/recruitments/${id}/edit`)}
-            className="min-h-10 rounded-lg border border-neutral-200 px-5 text-sm disabled:opacity-50"
-          >
-            수정
-          </button>
-          <button
-            type="button"
-            disabled={mutation.isPending}
-            onClick={() => setIsConfirmingDelete(true)}
-            className="min-h-10 rounded-lg border border-red-200 px-5 text-sm text-red-600 disabled:opacity-50"
-          >
-            {mutation.isPending ? '삭제 중...' : '삭제'}
-          </button>
-        </div>
-        {isConfirmingDelete && (
+        {/* 버튼 숨김은 UX입니다. 직접 API 호출은 서버 Guard와 owner check가 보호합니다. */}
+        {isOwner && (
+          <div className="mt-8 flex gap-3">
+            <button
+              type="button"
+              disabled={mutation.isPending}
+              onClick={() => router.push(`/recruitments/${id}/edit`)}
+              className="min-h-10 rounded-lg border border-neutral-200 px-5 text-sm disabled:opacity-50"
+            >
+              수정
+            </button>
+            <button
+              type="button"
+              disabled={mutation.isPending}
+              onClick={() => setIsConfirmingDelete(true)}
+              className="min-h-10 rounded-lg border border-red-200 px-5 text-sm text-red-600 disabled:opacity-50"
+            >
+              {mutation.isPending ? '삭제 중...' : '삭제'}
+            </button>
+          </div>
+        )}
+        {isOwner && isConfirmingDelete && (
           <div
             role="group"
             aria-label="삭제 확인"
@@ -176,6 +184,18 @@ export default function RecruitmentDetailPage() {
             {mutation.error.message}
           </p>
         )}
+        {isOwner && me.data && (
+          <ApplicationManager
+            key={`${id}:${me.data.user.id}`}
+            recruitmentId={id}
+            userId={me.data.user.id}
+          />
+        )}
+        <ApplicationSection
+          recruitmentId={id}
+          authorId={recruitment.author.id}
+          status={recruitment.status}
+        />
       </article>
     </section>
   );

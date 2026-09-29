@@ -52,11 +52,11 @@ test('successful GET returns parsed server data', async () => {
   });
 });
 
-test('404 rejects with a friendly missing recruitment error', async () => {
+test('404 preserves the server error message', async () => {
   assert.equal(typeof getJson, 'function', 'Typed GET client must exist');
   await assert.rejects(getJson(`${baseUrl}/missing`), {
     name: 'Error',
-    message: '모집글을 찾을 수 없습니다.',
+    message: 'Not found',
   });
 });
 

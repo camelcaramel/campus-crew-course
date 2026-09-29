@@ -1,0 +1,1126 @@
+{
+  "info": {
+    "name": "Campus Crew Session 24 - application apply/cancel",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Local classroom DB only. Main flow creates 2 users and deletes its recruitment. Accounts remain for inspection. Optional final-state folder requires fixtureCookie and approvedRecruitmentId/rejectedRecruitmentId set from isolated DB fixtures; missing fixtures skip those requests. Default port 4024."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4024"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) pm.collectionVariables.set('runId', String(Date.now()));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Apply and cancel",
+      "item": [
+        {
+          "name": "No auth POST",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"지원합니다\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No auth GET",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/my-application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No auth DELETE",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up owner",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"session24-{{runId}}-owner@example.com\",\n  \"name\": \"24차시 owner\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('ownerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in owner",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"session24-{{runId}}-owner@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('ownerCookie', pm.response.headers.get('Set-Cookie').split(';')[0]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up applicant",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"session24-{{runId}}-applicant@example.com\",\n  \"name\": \"24차시 applicant\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('applicantId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in applicant",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"session24-{{runId}}-applicant@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('applicantCookie', pm.response.headers.get('Set-Cookie').split(';')[0]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create recruitment",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{ownerCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"24차시 Postman {{runId}}\",\n  \"content\": \"지원 취소 기능을 검증하는 임시 모집글입니다.\",\n  \"category\": \"STUDY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('recruitmentId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Self apply",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{ownerCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"지원합니다\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('APPLICATION_SELF_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_SELF_NOT_ALLOWED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No application",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/my-application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('null',()=>pm.expect(pm.response.json()).to.eql({application:null}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Message too short",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"가\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"함께 참여하고 싶습니다.\",\n  \"applicantId\": \"{{ownerId}}\",\n  \"status\": \"APPROVED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('PENDING',()=>pm.expect(pm.response.json().application.status).to.eql('PENDING'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My PENDING application",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/my-application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('PENDING',()=>pm.expect(pm.response.json().application.status).to.eql('PENDING'));",
+                  "pm.test('private response',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.include('no-store'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate apply",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"중복 지원\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('APPLICATION_ALREADY_EXISTS', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_ALREADY_EXISTS'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other user cannot cancel",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{ownerCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('APPLICATION_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel PENDING",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "After cancel null",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/my-application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('null',()=>pm.expect(pm.response.json().application).to.eql(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reapply",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"다시 지원합니다.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Close recruitment",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{ownerCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CLOSED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel after closing",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Closed apply",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"지원합니다\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('RECRUITMENT_CLOSED', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_CLOSED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing application",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('APPLICATION_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing recruitment POST",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"지원합니다\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('RECRUITMENT_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing recruitment GET",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/my-application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('RECRUITMENT_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing recruitment DELETE",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{applicantCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/-1/applications/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('RECRUITMENT_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clean up recruitment",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{ownerCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prepared final statuses",
+      "item": [
+        {
+          "name": "Prepared APPROVED status",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{fixtureCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{approvedRecruitmentId}}/my-application"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('approvedRecruitmentId') || !pm.variables.get('fixtureCookie')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('APPROVED',()=>pm.expect(pm.response.json().application.status).to.eql('APPROVED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cannot cancel APPROVED",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{fixtureCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{approvedRecruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('approvedRecruitmentId') || !pm.variables.get('fixtureCookie')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('APPLICATION_INVALID_STATUS', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATUS'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Prepared REJECTED status",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{fixtureCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{rejectedRecruitmentId}}/my-application"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('rejectedRecruitmentId') || !pm.variables.get('fixtureCookie')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('REJECTED',()=>pm.expect(pm.response.json().application.status).to.eql('REJECTED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cannot cancel REJECTED",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{fixtureCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/recruitments/{{rejectedRecruitmentId}}/applications/me"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('rejectedRecruitmentId') || !pm.variables.get('fixtureCookie')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('APPLICATION_INVALID_STATUS', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATUS'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

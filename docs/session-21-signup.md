@@ -2,7 +2,7 @@
 
 ## 목표와 범위
 
-회원가입은 User row를 만드는 API입니다. 이번 차시에서는 `POST /api/auth/signup`으로 name, email, password를 받고 비밀번호의 hash만 DB에 저장합니다. 로그인/JWT, cookie, Guard, me, logout, refresh token, OAuth는 구현하지 않습니다. 기존 4~20차시 화면과 모집글 CRUD는 보존합니다. 현재 프론트 소스에는 `/signup` 라우트가 없어 화면을 새로 만들거나 API를 연결하지 않았습니다.
+회원가입은 User row를 만드는 API입니다. 이번 차시에서는 `POST /api/auth/signup`으로 name, email, password를 받고 비밀번호의 hash만 DB에 저장합니다. 로그인/JWT, cookie, Guard, me, logout, refresh token, OAuth는 구현하지 않습니다. 기존 4~20차시 화면과 모집글 CRUD는 보존합니다. 원래 21차시 체크포인트 `dfb5e28`은 API까지 구현했습니다. 이후 [21차시 화면 보완 실습](session-21-signup-ui.md)을 추가해 `/signup`에서 가입 완료까지 수행할 수 있습니다. 이 문서의 아래 기록은 원래 API 구현 기록으로 보존합니다.
 
 ## 구조와 변경 파일
 

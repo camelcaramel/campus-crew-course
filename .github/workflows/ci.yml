@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: campus_crew_test
+          POSTGRES_USER: campus_crew
+          POSTGRES_PASSWORD: campus_crew
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U campus_crew -d campus_crew_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: 'true'
+      TEST_DATABASE_URL: postgresql://campus_crew:campus_crew@127.0.0.1:5432/campus_crew_test?schema=public
+      DATABASE_URL: postgresql://campus_crew:campus_crew@127.0.0.1:5432/campus_crew_test?schema=public
+      JWT_SECRET: session-28-ci-only-secret-never-use-in-production
+      E2E_EMAIL: smoke@example.test
+      E2E_PASSWORD: CampusCrewE2e28!
+      API_BASE_URL: http://127.0.0.1:4000
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          clean: false
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Format check
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+      - name: Prepare isolated test database
+        run: npm run test:e2e:prepare
+      - name: API and web tests
+        run: npm test
+      - name: Build API and web
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke
+        run: npm run test:e2e
+      - name: Upload browser failure report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-failure
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useMeQuery } from '@/features/auth/queries';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Spinner } from '@/components/ui/spinner';
 import { updateRecruitment } from '@/features/recruitments/api';
@@ -13,6 +14,7 @@ import type { RecruitmentFormValues } from '@/features/recruitments/schema';
 export default function EditRecruitmentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const me = useMeQuery();
   const queryClient = useQueryClient();
   // 수정 화면에 진입할 때는 캐시뿐 아니라 DB의 최신 값을 확인합니다.
   const query = useRecruitmentQuery(id, 'always');
@@ -44,7 +46,27 @@ export default function EditRecruitmentPage() {
         모집글 목록으로
       </Link>
       <h1 className="mt-6">모집글 수정</h1>
-      {query.isPending || (!query.isFetchedAfterMount && query.isFetching) ? (
+      {me.isPending ? (
+        <Spinner />
+      ) : me.isError ? (
+        <ErrorMessage
+          message="로그인 상태를 확인하지 못했습니다."
+          action={
+            <button type="button" onClick={() => void me.refetch()}>
+              다시 시도
+            </button>
+          }
+        />
+      ) : !me.data ? (
+        <p className="mt-6">
+          수정하려면{' '}
+          <Link href="/login" className="text-primary-600 underline">
+            로그인
+          </Link>
+          해주세요.
+        </p>
+      ) : query.isPending ||
+        (!query.isFetchedAfterMount && query.isFetching) ? (
         <Spinner />
       ) : query.isError &&
         (!query.data ||
@@ -62,6 +84,8 @@ export default function EditRecruitmentPage() {
             </button>
           }
         />
+      ) : query.data && me.data.user.id !== query.data.author.id ? (
+        <ErrorMessage message="작성자만 수정할 수 있습니다." />
       ) : query.data ? (
         <>
           {query.isError && (

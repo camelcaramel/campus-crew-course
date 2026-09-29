@@ -1,0 +1,798 @@
+{
+  "info": {
+    "name": "Campus Crew Session 23 — Guard and Owner Authorization",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run in order on local development only. Creates two test users and deletes its own recruitments; test users remain for inspection. Each request disables the automatic cookie jar and explicitly selects the owner/other cookie. Tokens exist only in local run variables. No JWT secret is needed."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4023"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) pm.collectionVariables.set('runId', Date.now().toString());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 anonymous POST 401",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"session23-postman-{{runId}}\",\n  \"content\": \"23차시 권한 검증용 모집글입니다.\",\n  \"category\": \"STUDY\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 anonymous PATCH 401",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"거부\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 anonymous DELETE 401",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 invalid token 401",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "access_token=invalid"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"session23-postman-{{runId}}\",\n  \"content\": \"23차시 권한 검증용 모집글입니다.\",\n  \"category\": \"STUDY\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "signup owner",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/signup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"작성자\",\n  \"email\": \"session23-owner-{{runId}}@example.com\",\n  \"password\": \"session23-password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('ownerId', pm.response.json().id);",
+              "pm.test('safe user response', () => pm.expect(pm.response.json()).not.to.have.property('passwordHash'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "login owner",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"session23-owner-{{runId}}@example.com\",\n  \"password\": \"session23-password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('ownerCookie', pm.response.headers.get('Set-Cookie').split(';')[0]);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "signup other",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/signup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"다른학생\",\n  \"email\": \"session23-other-{{runId}}@example.com\",\n  \"password\": \"session23-password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('otherId', pm.response.json().id);",
+              "pm.test('safe user response', () => pm.expect(pm.response.json()).not.to.have.property('passwordHash'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "login other",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"session23-other-{{runId}}@example.com\",\n  \"password\": \"session23-password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('otherCookie', pm.response.headers.get('Set-Cookie').split(';')[0]);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner me safe identity",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('safe identity', () => pm.expect(Object.keys(pm.response.json().user).sort()).to.eql(['email','id','name']));",
+              "pm.test('same owner id', () => pm.expect(pm.response.json().user.id).to.eql(Number(pm.collectionVariables.get('ownerId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "create only title content category",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"session23-postman-{{runId}}\",\n  \"content\": \"23차시 권한 검증용 모집글입니다.\",\n  \"category\": \"STUDY\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const row = pm.response.json(); pm.collectionVariables.set('recruitmentId', row.id);",
+              "pm.test('author from JWT', () => pm.expect(row.authorId).to.eql(Number(pm.collectionVariables.get('ownerId'))));",
+              "pm.test('request has no authorId', () => pm.expect(JSON.parse(pm.request.body.raw)).not.to.have.property('authorId'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "spoof authorId ignored",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"session23-postman-{{runId}}\",\n  \"content\": \"23차시 권한 검증용 모집글입니다.\",\n  \"category\": \"STUDY\",\n  \"authorId\": \"{{otherId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('spoofId', pm.response.json().id);",
+              "pm.test('spoof ignored', () => pm.expect(pm.response.json().authorId).to.eql(Number(pm.collectionVariables.get('ownerId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "non-owner PATCH 403",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{otherCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"거부됨\",\n  \"authorId\": \"{{ownerId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('forbidden code', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "non-owner DELETE 403",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{otherCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('forbidden code', () => pm.expect(pm.response.json().code).to.eql('RECRUITMENT_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public detail unchanged",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('unchanged title', () => pm.expect(pm.response.json().title).to.eql('session23-postman-' + pm.collectionVariables.get('runId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "authenticated absent PATCH 404",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{otherCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "authenticated absent DELETE 404",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{otherCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner PATCH success",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"session23-postman-{{runId}}-updated\",\n  \"authorId\": \"{{otherId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('ownership unchanged', () => pm.expect(pm.response.json().authorId).to.eql(Number(pm.collectionVariables.get('ownerId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner DELETE success",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "pm.test('empty body', () => pm.expect(pm.response.text()).to.eql(''))"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "deleted detail 404",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "cleanup spoof recruitment",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{spoofId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "logout",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/logout"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "me without cookie 401",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

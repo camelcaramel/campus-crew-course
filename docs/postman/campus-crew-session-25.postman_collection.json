@@ -1,0 +1,848 @@
+{
+  "info": {
+    "name": "Campus Crew Session 25 — applicant management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "전용 검증 DB에서만 실행. 세 사용자 cookie, 지원이 없는 recruitmentId, 같은 작성자의 otherRecruitmentId를 환경 변수로 설정. cookie jar를 끄고 요청마다 계정을 지정. 실제 계정/cookie는 이 파일에 저장하지 않습니다."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "ownerCookie",
+      "value": ""
+    },
+    {
+      "key": "applicantCookie",
+      "value": ""
+    },
+    {
+      "key": "secondCookie",
+      "value": ""
+    },
+    {
+      "key": "recruitmentId",
+      "value": ""
+    },
+    {
+      "key": "otherRecruitmentId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Unauthenticated list",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 401',()=>pm.response.to.have.status(401));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unauthenticated decision",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 401',()=>pm.response.to.have.status(401));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner empty list",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('empty',()=>pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applicant applies",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{applicantCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"Postman 첫 번째 지원\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "pm.environment.set('applicationId',pm.response.json().application.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Second applicant applies",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{secondCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"Postman 두 번째 지원\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "pm.environment.set('secondApplicationId',pm.response.json().application.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner applicant list",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('two safe applicants',()=>{const a=pm.response.json();pm.expect(a).to.have.length(2);a.forEach(row=>{pm.expect(Object.keys(row).sort()).to.eql(['applicant','createdAt','id','message','status']);pm.expect(Object.keys(row.applicant).sort()).to.eql(['email','id','name']);});pm.expect(JSON.stringify(a)).not.to.include('passwordHash');});",
+              "pm.test('private response',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Non-owner list forbidden",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{applicantCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Non-owner decision forbidden",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{applicantCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing recruitment list",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('RECRUITMENT_NOT_FOUND'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing recruitment decision",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/-1/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('RECRUITMENT_NOT_FOUND'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mixed recruitment and application",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{otherRecruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_NOT_FOUND'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing application",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/-1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_NOT_FOUND'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PENDING body forbidden",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"PENDING\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown status forbidden",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"OTHER\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('HTTP 400',()=>pm.response.to.have.status(400));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve pending",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('allowlisted fields',()=>{const a=pm.response.json();pm.expect(Object.keys(a).sort()).to.eql(['applicant','createdAt','id','message','status']);pm.expect(Object.keys(a.applicant).sort()).to.eql(['email','id','name']);pm.expect(JSON.stringify(a)).not.to.include('passwordHash');});",
+              "pm.test('approved',()=>pm.expect(pm.response.json().status).to.eql('APPROVED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cannot reverse approval",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"REJECTED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATUS'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cannot approve again",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{applicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATUS'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject second pending",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{secondApplicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"REJECTED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('allowlisted fields',()=>{const a=pm.response.json();pm.expect(Object.keys(a).sort()).to.eql(['applicant','createdAt','id','message','status']);pm.expect(Object.keys(a.applicant).sort()).to.eql(['email','id','name']);pm.expect(JSON.stringify(a)).not.to.include('passwordHash');});",
+              "pm.test('rejected',()=>pm.expect(pm.response.json().status).to.eql('REJECTED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cannot reverse rejection",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications/{{secondApplicationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"APPROVED\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+              "pm.test('error code',()=>pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATUS'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applicant refetch approved",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{applicantCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/my-application"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('approved for applicant',()=>pm.expect(pm.response.json().application.status).to.eql('APPROVED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Second refetch rejected",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{secondCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/my-application"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('rejected for applicant',()=>pm.expect(pm.response.json().application.status).to.eql('REJECTED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner final list",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{ownerCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/recruitments/{{recruitmentId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('final states',()=>pm.expect(pm.response.json().map(a=>a.status).sort()).to.eql(['APPROVED','REJECTED']));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
