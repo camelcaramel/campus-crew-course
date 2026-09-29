@@ -5,7 +5,7 @@
 ## 원본과 이력 보존
 
 - 독립 clone에서 학생 가이드를 추가했습니다. 원본 checkout, main, remote, 기존 브랜치·커밋은 수정하지 않습니다.
-- 원본 main의 36개 커밋과 별도 회원가입 UI 보완 커밋 `80e31ec`를 포함해 기존 37개 커밋을 보존합니다. 보완 커밋은 `lesson/session-21-signup-complete` 브랜치로 공개합니다.
+- 원본 main의 36개 커밋과 별도 회원가입 UI 보완 커밋 `80e31ec`를 포함해 기존 37개 커밋을 보존합니다. 보완 커밋은 최초 공개 시 `lesson/session-21-signup-complete` 브랜치로 제공했습니다. 이후 PR #1 충돌 해결 전에 같은 커밋을 `checkpoint-21-signup-ui` annotated 태그로 고정했습니다. 해당 브랜치는 최신 main과 통합되므로 21차시 전용 실습은 고정 태그를 사용합니다.
 - 새 저장소는 `camelcaramel/campus-crew-course`, public입니다. 기존 원본 `camelcaramel/campus-crew`로 push하지 않습니다.
 - 실제 비밀값이 발견되지 않아 sanitized history를 만들거나 commit ID를 재작성하지 않았습니다.
 - checkpoint 태그는 [매핑 근거](course-checkpoints.md)의 실제 커밋을 가리킵니다. 정확한 3차시 종료 상태만 없으므로 최초 4차시 commit을 명시적 대체값으로 사용합니다.

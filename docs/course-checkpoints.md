@@ -33,6 +33,6 @@
 | 29   | checkpoint-29 | `fa44bfd1a8694ab19b179367ca43f081121c08df` | chore: prepare production deployment                              | [계획](superpowers/plans/2026-09-23-campus-crew-session-29-production-deploy.md)                |
 | 30   | checkpoint-30 | `bc73b035cda70c85441dedd5911af1e03eb1b31b` | Merge pull request #3 from camelcaramel/feat/session-21-signup-ui | [계획](superpowers/plans/2026-09-23-campus-crew-session-30-production-incident-v1.md)           |
 
-03은 최초 4차시 커밋을 공유하는 명시적 대체 시작점이며 정확한 3차시 이력은 unavailable입니다. 21은 당시 API 완성 기준이며 UI 보완 브랜치 `lesson/session-21-signup-complete` (`80e31ec`)도 함께 공개합니다. 26은 구현 후 문서 보완까지, 29는 배포 준비, 30은 장애 수정·배포 기록·후속 UI 통합을 포함합니다. 상세 예외와 실습 순서는 [README](../README.md)를 참고하세요.
+03은 최초 4차시 커밋을 공유하는 명시적 대체 시작점이며 정확한 3차시 이력은 unavailable입니다. 21은 당시 API 완성 기준이며 UI 보완 고정 태그 `checkpoint-21-signup-ui` (`80e31ec`)도 함께 공개합니다. 26은 구현 후 문서 보완까지, 29는 배포 준비, 30은 장애 수정·배포 기록·후속 UI 통합을 포함합니다. 상세 예외와 실습 순서는 [README](../README.md)를 참고하세요.
 
 태그는 원래 커밋을 가리킵니다. 과거 커밋의 코드·README를 최신 내용으로 바꾸거나, 차시를 만들기 위해 history를 재작성하지 않았습니다.

@@ -43,7 +43,7 @@ npm install
 git fetch --tags
 ```
 
-본인의 GitHub에 실습 기록을 남기려면 GitHub에서 **Fork**한 다음 **자신의 Fork URL**로 clone하세요. 차시 커밋 이력을 활용하므로 Template보다 Fork를 권장합니다. 기본 Fork로 가져오지 않은 보완 브랜치나 태그는 원본을 upstream으로 등록해 받을 수 있습니다.
+본인의 GitHub에 실습 기록을 남기려면 GitHub에서 **Fork**한 다음 **자신의 Fork URL**로 clone하세요. 차시 커밋 이력을 활용하므로 Template보다 Fork를 권장합니다. 기본 Fork로 가져오지 않은 보완 태그는 원본을 upstream으로 등록해 받을 수 있습니다.
 
 ```bash
 git remote add upstream https://github.com/camelcaramel/campus-crew-course.git
@@ -128,20 +128,22 @@ git log checkpoint-17..checkpoint-18 --oneline
 ### 실제 이력과 수업 순서의 차이
 
 - **03:** 3차시 종료/4차시 생성 직전 커밋은 없습니다(`unavailable`). 요청한 대체 규칙에 따라 최초 커밋 `8332381`을 가리킵니다. **04와 같은 커밋이며 이미 프로젝트가 생성되어 있습니다.** 03→04 diff가 비는 것은 정상이고, 구현 전 빈 프로젝트를 복원한 태그는 아닙니다.
-- **21:** `checkpoint-21`은 원래 회원가입 API·hash 구현입니다. 화면까지 포함한 추가 실습은 보존된 `lesson/session-21-signup-complete` 브랜치(`80e31ec`)를 사용합니다. [보완 안내](docs/session-21-signup-ui.md). 이 보완은 과거 22~29차시 태그에 소급되지 않습니다.
+- **21:** `checkpoint-21`은 원래 회원가입 API·hash 구현입니다. 화면까지 포함한 추가 실습은 고정 태그 `checkpoint-21-signup-ui`(`80e31ec`)를 사용합니다. [보완 안내](docs/session-21-signup-ui.md). 이 보완은 과거 22~29차시 태그에 소급되지 않습니다.
 - **26:** 구현 `3b6d293`에 DB sequence 검증 설명 보완 `9c82e7b`까지 포함했습니다.
 - **29:** 해당 시점은 배포 구성 **준비 완료**입니다. 실제 호스팅 검증은 이후 `4682b17` 기록으로 남아 있으며 30차시 최종 통합본에 포함됩니다. [배포 기록](docs/deployment.md).
 - **30:** 최초 장애 수정·설명 `8cb95e7`~`4c0d74d`, 실제 배포 기록, 회원가입 화면 보완을 포함한 원본 최종 main `bc73b03`입니다. 29→30 비교에는 merge와 후속 보완도 포함됩니다.
 - **04~30은 모두 available**입니다. 차시별 원본 커밋·계획 파일·주요 변경 근거는 [전체 매핑표](docs/course-checkpoints.md)를 참고하세요.
 
+21차시 전용 상태는 `checkpoint-21-signup-ui` 태그로 고정했습니다. 기존 `lesson/session-21-signup-complete` 브랜치는 PR #1 충돌 해결 과정에서 최신 main을 통합했으므로 과거 21차시 실습 시작점으로 사용하지 않습니다.
+
 21차시 화면 보완을 별도로 실습하려면:
 
 ```bash
-git fetch origin
-git switch --no-track -c practice/session-21-ui origin/lesson/session-21-signup-complete
+git fetch origin --tags
+git switch -c practice/session-21-ui checkpoint-21-signup-ui
 ```
 
-Fork에서 보완 브랜치가 없으면 위 명령의 `origin`을 앞서 등록한 `upstream`으로 바꾸세요. 과거 22차시 태그로 단순 이동하면 보완 UI는 포함되지 않습니다. 자기 실습 브랜치에서 다음 수업을 이어가거나 최신 main으로 통합 결과를 확인하세요.
+Fork에서 보완 태그가 없으면 `git fetch upstream --tags`로 받은 후 같은 switch 명령을 실행하세요. 과거 22차시 태그로 단순 이동하면 보완 UI는 포함되지 않습니다. 자기 실습 브랜치에서 다음 수업을 이어가거나 최신 main으로 통합 결과를 확인하세요.
 
 ## 개발 환경
 

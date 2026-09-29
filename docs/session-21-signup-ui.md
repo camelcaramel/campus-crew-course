@@ -87,12 +87,14 @@ npm run lint -w apps/web
 
 ### 바로 사용할 수 있는 21차시 전용 체크포인트
 
-`lesson/session-21-signup-complete`는 원래 21차시 `dfb5e28` 바로 다음에 회원가입 화면 보완 `80e31ec`만 추가한 브랜치입니다. 현재 main의 로그인·지원·배포 코드는 포함하지 않습니다. 원래 Header의 비활성 로그인은 보존하고 회원가입만 활성화했습니다. 통합본 보완 커밋 `f16094a`와 기능은 같지만 Header 문맥 차이를 정리했으므로 커밋 ID가 다릅니다.
+`checkpoint-21-signup-ui`는 원래 21차시 `dfb5e28` 바로 다음에 회원가입 화면 보완 `80e31ec`만 추가한 상태를 보존한 annotated 태그입니다. 현재 main의 로그인·지원·배포 코드는 포함하지 않습니다. 원래 Header의 비활성 로그인은 보존하고 회원가입만 활성화했습니다. 통합본 보완 커밋 `f16094a`와 기능은 같지만 Header 문맥 차이를 정리했으므로 커밋 ID가 다릅니다.
 
 ```sh
 git status
-git fetch origin
-git switch --no-track -c my/session-21-signup origin/lesson/session-21-signup-complete
+git fetch origin --tags
+git switch -c my/session-21-signup checkpoint-21-signup-ui
 ```
 
-작업 중인 변경이 있다면 먼저 자신의 작업을 커밋하거나 별도 worktree에 보존합니다. 이 브랜치에서 21차시 가입 완료를 확인하고 22차시 실습 코드를 이어 작성하세요. 기존 22차시 커밋을 일괄 cherry-pick하면 Header 충돌이 날 수 있으므로 단순히 통합본 커밋 전체를 과거 차시에 복사하지 않습니다.
+기존 `lesson/session-21-signup-complete` 브랜치는 PR #1 충돌 해결을 위해 최신 main과 통합되었습니다. 21차시만 실습할 때는 위의 고정 태그를 사용하세요. Fork에 태그가 없으면 수업 저장소를 upstream으로 추가한 후 `git fetch upstream --tags`로 받습니다.
+
+작업 중인 변경이 있다면 먼저 자신의 작업을 커밋하거나 별도 worktree에 보존합니다. 새 실습 브랜치에서 21차시 가입 완료를 확인하고 22차시 실습 코드를 이어 작성하세요. 기존 22차시 커밋을 일괄 cherry-pick하면 Header 충돌이 날 수 있으므로 단순히 통합본 커밋 전체를 과거 차시에 복사하지 않습니다.
